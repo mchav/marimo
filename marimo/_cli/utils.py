@@ -16,7 +16,13 @@ from marimo._config.settings import GLOBAL_SETTINGS
 from marimo._server.tokens import AuthToken
 
 
-def prompt_to_overwrite(path: Path) -> bool:
+def prompt_to_overwrite(path: Path, overwrite: str) -> bool:
+    if overwrite == "yes":
+        return True
+
+    if overwrite == "no":
+        return False
+
     if GLOBAL_SETTINGS.YES:
         return True
 

@@ -63,7 +63,8 @@ def watch_and_export(
     output: Optional[Path],
     watch: bool,
     export_callback: Callable[[MarimoPath], ExportResult],
-    force: bool,
+    force: bool | None,
+    overwrite: str,
     *,
     initial_export_in_watch: bool = False,
 ) -> None:
@@ -85,7 +86,7 @@ def watch_and_export(
     if output:
         output_path = Path(output)
         if not force and not watch:
-            if not prompt_to_overwrite(output_path):
+            if not prompt_to_overwrite(output_path, overwrite):
                 return
 
     # No watch, just run once
@@ -208,6 +209,7 @@ def html(
     watch: bool,
     sandbox: Optional[bool],
     force: bool,
+    overwrite: str,
     args: tuple[str],
 ) -> None:
     """Run a notebook and export it as an HTML file."""
@@ -238,7 +240,7 @@ def html(
         )
 
     return watch_and_export(
-        MarimoPath(name), output, watch, export_callback, force
+        MarimoPath(name), output, watch, export_callback, force, overwrite
     )
 
 
@@ -315,7 +317,7 @@ def script(
         return export_as_script(file_path)
 
     return watch_and_export(
-        MarimoPath(name), output, watch, export_callback, force
+        MarimoPath(name), output, watch, export_callback, force, ""
     )
 
 
@@ -392,7 +394,7 @@ def md(
         return export_as_md(file_path)
 
     return watch_and_export(
-        MarimoPath(name), output, watch, export_callback, force
+        MarimoPath(name), output, watch, export_callback, force, ""
     )
 
 
@@ -511,7 +513,7 @@ def ipynb(
         return export_as_ipynb(file_path, sort_mode=sort)
 
     return watch_and_export(
-        MarimoPath(name), output, watch, export_callback, force
+        MarimoPath(name), output, watch, export_callback, force, ""
     )
 
 
@@ -779,6 +781,7 @@ def pdf(
         watch,
         export_callback_impl,
         force,
+        "",
         initial_export_in_watch=True,
     )
 
@@ -853,6 +856,12 @@ and cannot be opened directly from the file system (e.g. file://).
     default=False,
     help="Force overwrite of the output file if it already exists.",
 )
+@click.option(
+    "--overwrite",
+    type=click.Choice(["yes", "no", ""]),
+    default="",
+    help="Whether to overwrite the existing file.",
+)
 @click.argument(
     "name",
     required=True,
@@ -867,6 +876,7 @@ def html_wasm(
     include_cloudflare: bool,
     sandbox: Optional[bool],
     force: bool,
+    overwrite: str,
 ) -> None:
     """Export a notebook as a WASM-powered standalone HTML file."""
     import sys
@@ -927,7 +937,7 @@ def html_wasm(
 
     outfile = out_dir / filename
     return watch_and_export(
-        MarimoPath(name), outfile, watch, export_callback, force
+        MarimoPath(name), outfile, watch, export_callback, force, overwrite
     )
 
 
